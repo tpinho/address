@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html ng-app="addresses">
+	<head>
+		<title>Address Application</title>
+		
+		<link rel="stylesheet" href="lib/dependencies/css/bootstrap.min.css" />
+		<link rel="stylesheet" href="lib/dependencies/css/ng-grid.min.css" />
+   		<link rel="stylesheet" type="text/css" href="css/style.css"/>
+  		
+  		<script src="lib/dependencies/jquery.min.js"></script>
+  		<script src="lib/dependencies/angular.min.js"></script>
+    	<script src="lib/dependencies/angular-resource.min.js"></script>
+    	<script src="lib/dependencies/ng-grid-2.0.11.min.js"></script>
+    	<script src="lib/dependencies/ui-bootstrap-tpls.min.js"></script>
+
+		<script src="script/address.js"></script>
+	</head>
+	
+	<body>
+
+		<h1>Address Application</h1>
+
+		<br/>
+		
+		<div class="message" ng-controller="alertMessagesController">
+    		<alert ng-repeat="alert in alerts" type="{{alert.type}}" close="closeAlert($index)">{{alert.msg}}</alert>
+		</div>
+		
+		<br>
+
+		<div class="grid" ng-controller="addressesListController">
+    		<div>
+        		<h3>List Addresses</h3>
+    		</div>
+
+    		<div class="gridStyle" ng-grid="gridOptions"></div>
+
+		    <pagination direction-links="true" 
+		    			boundary-links="true"
+						total-items="addresses.totalResults" 
+						items-per-page="addresses.pageSize"
+						ng-model="addresses.currentPage" 
+						ng-change="refreshGrid()">
+    		</pagination>
+		</div>
+		
+		<div class="form" ng-controller="addressesFormController">
+    		<div ng-if="address.id == null">
+        		<h3>Add Address</h3>
+    		</div>
+    		<div ng-if="address.id != null">
+        		<h3>Edit Address</h3>
+    		</div>
+    		
+    		<div>
+        		<form name="addressForm" ng-submit="updateAddress()" novalidate>
+        			<div class="form-group" ng-class="{'has-error' : addressForm.zipcode.$invalid && addressForm.zipcode.$dirty}">
+                		<label for="name">Zipcode:</label>
+                		<span ng-class="{'glyphicon glyphicon-ok' : addressForm.zipcode.$valid && addressForm.zipcode.$dirty}"></span>
+
+                		<input id="zipcode" 
+                			   name="zipcode" 
+                			   type="text" 
+                			   class="form-control" 
+                			   maxlength="50"
+                       		   ng-model="address.zipcode"
+                       		   required 
+                       		   ng-blur="searchZipcode()"
+                       		   ng-minlength="8" 
+                       		   ng-maxlength="8"/>
+
+						<p class="help-block" ng-show="addressForm.zipcode.$error.required">Add Zipcode.</p>
+						<p class="help-block" ng-show="addressForm.zipcode.$error.minlength">Zipcode must be at least 8 characters long.</p>
+						<p class="help-block" ng-show="addressForm.zipcode.$error.maxlength">Zipcode cannot be longer than 8 characters.</p>
+					</div>
+					
+	            	<div class="form-group" ng-class="{'has-error' : addressForm.street.$invalid && addressForm.street.$dirty}">
+                		<label for="name">Street:</label>
+                		<span ng-class="{'glyphicon glyphicon-ok' : addressForm.street.$valid && addressForm.street.$dirty}"></span>
+
+                		<input id="street" 
+                			   name="street" 
+                			   type="text" 
+                			   class="form-control" 
+                			   maxlength="50"
+                       		   ng-model="address.street"
+                       		   required 
+                       		   ng-disabled="true"
+                       		   ng-minlength="5" 
+                       		   ng-maxlength="50"/>
+
+						<p class="help-block" ng-show="addressForm.street.$error.required">Add Street.</p>
+						<p class="help-block" ng-show="addressForm.street.$error.minlength">Street must be at least 5 characters long.</p>
+						<p class="help-block" ng-show="addressForm.street.$error.maxlength">Street cannot be longer than 50 characters.</p>
+					</div>
+					
+					<div class="form-group" ng-class="{'has-error' : addressForm.number.$invalid && addressForm.number.$dirty}">
+                		<label for="name">Number:</label>
+                		<span ng-class="{'glyphicon glyphicon-ok' : addressForm.number.$valid && addressForm.number.$dirty}"></span>
+
+                		<input id="number" 
+                			   name="number" 
+                			   type="text" 
+                			   class="form-control" 
+                			   maxlength="50"
+                       		   ng-model="address.number"
+                       		   required 
+                       		   ng-minlength="2" 
+                       		   ng-maxlength="20"/>
+
+						<p class="help-block" ng-show="addressForm.number.$error.required">Add Number.</p>
+						<p class="help-block" ng-show="addressForm.number.$error.minlength">Number must be at least 2 characters long.</p>
+						<p class="help-block" ng-show="addressForm.number.$error.maxlength">Number cannot be longer than 20 characters.</p>
+					</div>
+					
+					<div class="form-group" ng-class="{'has-error' : addressForm.city.$invalid && addressForm.city.$dirty}">
+                		<label for="name">City:</label>
+                		<span ng-class="{'glyphicon glyphicon-ok' : addressForm.city.$valid && addressForm.city.$dirty}"></span>
+
+                		<input id="city" 
+                			   name="city" 
+                			   type="text" 
+                			   class="form-control" 
+                			   maxlength="50"
+                       		   ng-model="address.city"
+                       		   required 
+                       		   ng-disabled="true"
+                       		   ng-minlength="2" 
+                       		   ng-maxlength="50"/>
+
+						<p class="help-block" ng-show="addressForm.city.$error.required">Add City.</p>
+						<p class="help-block" ng-show="addressForm.city.$error.minlength">City must be at least 2 characters long.</p>
+						<p class="help-block" ng-show="addressForm.city.$error.maxlength">City cannot be longer than 50 characters.</p>
+					</div>
+					
+					<div class="form-group" ng-class="{'has-error' : addressForm.state.$invalid && addressForm.state.$dirty}">
+                		<label for="name">State:</label>
+                		<span ng-class="{'glyphicon glyphicon-ok' : addressForm.state.$valid && addressForm.state.$dirty}"></span>
+
+                		<input id="state" 
+                			   name="state" 
+                			   type="text" 
+                			   class="form-control" 
+                			   maxlength="50"
+                       		   ng-model="address.state"
+                       		   required 
+                       		   ng-disabled="true"
+                       		   ng-minlength="2" 
+                       		   ng-maxlength="50"/>
+
+						<p class="help-block" ng-show="addressForm.state.$error.required">Add State.</p>
+						<p class="help-block" ng-show="addressForm.state.$error.minlength">State must be at least 2 characters long.</p>
+						<p class="help-block" ng-show="addressForm.state.$error.maxlength">State cannot be longer than 50 characters.</p>
+					</div>
+					
+					<div class="form-group" ng-class="{'has-error' : addressForm.neighborhood.$invalid && addressForm.neighborhood.$dirty}">
+                		<label for="name">Neighborhood:</label>
+                		<span ng-class="{'glyphicon glyphicon-ok' : addressForm.neighborhood.$valid && addressForm.neighborhood.$dirty}"></span>
+
+                		<input id="neighborhood" 
+                			   name="neighborhood" 
+                			   type="text" 
+                			   class="form-control" 
+                			   maxlength="50"
+                       		   ng-model="address.neighborhood"
+                       		   ng-minlength="2" 
+                       		   ng-maxlength="50"/>
+
+						<p class="help-block" ng-show="addressForm.neighborhood.$error.required">Add Neighborhood.</p>
+						<p class="help-block" ng-show="addressForm.neighborhood.$error.minlength">Neighborhood must be at least 2 characters long.</p>
+						<p class="help-block" ng-show="addressForm.neighborhood.$error.maxlength">Neighborhood cannot be longer than 50 characters.</p>
+					</div>
+					
+					<div class="form-group" ng-class="{'has-error' : addressForm.complement.$invalid && addressForm.complement.$dirty}">
+                		<label for="name">Complement:</label>
+                		<span ng-class="{'glyphicon glyphicon-ok' : addressForm.complement.$valid && addressForm.complement.$dirty}"></span>
+
+                		<input id="complement" 
+                			   name="complement" 
+                			   type="text" 
+                			   class="form-control" 
+                			   maxlength="50"
+                       		   ng-model="address.complement"
+                       		   ng-minlength="2" 
+                       		   ng-maxlength="50"/>
+
+						<p class="help-block" ng-show="addressForm.complement.$error.required">Add Complement.</p>
+						<p class="help-block" ng-show="addressForm.complement.$error.minlength">Complement must be at least 2 characters long.</p>
+						<p class="help-block" ng-show="addressForm.complement.$error.maxlength">Complement cannot be longer than 50 characters.</p>
+					</div>
+					
+					<div class="buttons">
+						<button type="button" class="btn btn-primary" ng-click="clearForm()">Clear</button>
+						<button type="submit" class="btn btn-primary" ng-disabled="addressForm.$invalid">Save</button>
+					</div>
+				</form>
+            </div>
+    	</div>
+	</body>
+</html>
